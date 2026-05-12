@@ -14,19 +14,17 @@ image <- readJPEG("Z:\\Chalmers\\KANDIDAT\\programmering\\Monet.JPG") #copy past
 
 
 
-curr_id <- 19
+curr_id <- 2
 
 #data from first 45 seconds
 data451 <- subset(Monet, id == curr_id & inpic == 1 & dur40 == 1 & timestamp <= 45000)
 ppp451 <- ppp(data451$locX, y = data451$locY, window=monet_window)
-L451 <- Linhom(ppp451, correction="border")
-
+L451 <- Linhom(ppp451, correction="border", lambda=density(ppp451, sigma=bw.diggle(ppp451)))
 
 #data from the last 45 seconds
 data454 <- subset(Monet, id == curr_id & inpic == 1 & dur40 == 1 & timestamp <= 180000 & timestamp >= 135000)
 ppp454 <- ppp(data454$locX, y = data454$locY, window=monet_window)
-L454 <- Linhom(ppp454, correction="border")
-
+L454 <- Linhom(ppp454, correction="border", lambda=density(ppp454, sigma=bw.diggle(ppp454)))
 
 
 plot(L451$border, type="l", col="red", xlab="r", ylab="L(r)", ylim=c(0, 250))
@@ -35,7 +33,7 @@ legend("topleft", legend = c("första 45s", "sista 45s"), col=c("red","blue"), l
 
 #integration for the first 45 and the last 45. här användes abs. consider using the one tailed test.
 
-integral451454 <- integral((L451 - L454)^2)
+integral451454 <- integral(abs(L451 - L454))
 pooled451454 <- subset(Monet, id == curr_id & inpic == 1 & dur40 == 1 & (timestamp <= 45000 | (timestamp >= 135000 & timestamp <= 180000)))
 
 n451 <- nrow(data451)
@@ -51,9 +49,9 @@ for (i in 1:simuleringar) {
   g2 <- pooled451454[-random_sample, ]
   ppp1 <- ppp(g1$locX, g1$locY, window=monet_window)
   ppp2 <- ppp(g2$locX, g2$locY, window=monet_window)
-  L1 <- Linhom(ppp1, correction = "border")
-  L2 <- Linhom(ppp2, correction = "border")
-  res_array[i] <- integral((L1 - L2)^2)["border"]
+  L1 <- Linhom(ppp1, correction = "border", lambda=density(ppp1, sigma=bw.diggle(ppp1)))
+  L2 <- Linhom(ppp2, correction = "border", lambda=density(ppp2, sigma=bw.diggle(ppp2)))
+  res_array[i] <- integral(abs(L1 - L2))["border"]
 }
 
 #gör histogrammet nu. och sedan skaffa ett test statistika för att jämföra med histogrammet och gör beslut om resultatet.
@@ -64,7 +62,7 @@ higher <- as.integer(0.95*nrow(res_array))
 if (integral451454["border"] >= sorted_ra[higher]) {
   hist(res_array,main=paste("histogram för testsubjekt", curr_id), xlab="resultat från integration", xlim=c(0,integral451454["border"] + 0.2*integral451454["border"]), nclass=15)
 } else {
-  hist(res_array,main=paste("histogram för testsubjekt", curr_id), xlab="resultat från integration", xlim=c(0,sorted_ra[nrow(sorted_ra)]+100+abs(sorted_ra[nrow(sorted_ra)]*0.1)), nclass=15)
+  hist(res_array,main=paste("histogram för testsubjekt", curr_id), xlab="resultat från integration", xlim=c(0,sorted_ra[nrow(sorted_ra)]+300+abs(sorted_ra[nrow(sorted_ra)]*0.1)), nclass=15)
 }
 
 
@@ -74,27 +72,32 @@ abline(v=sorted_ra[higher], col="red")
 
 
 ################# for loop for all students, 45 seconds, abs. 
-pdf("histograms.pdf", width=8, height=40)
+pdf("histograms1.pdf", width=8, height=40)
 par(mfrow = c(10, 2))
 for (j in 1:20) {
   curr_id <- j
   
+  #data all
+  data451454 <- subset(Monet, id == curr_id & inpic == 1 & dur40 == 1 & (timestamp <= 45000 | (timestamp >= 135000 & timestamp <= 180000)))
+  ppp451454 <- ppp(data451454$locX, data451454$locY, window=monet_window)
+  pooledDens <- density(ppp451454, sigma=bw.diggle(ppp451454))
+  
   #data from first 45 seconds
   data451 <- subset(Monet, id == curr_id & inpic == 1 & dur40 == 1 & timestamp <= 45000)
   ppp451 <- ppp(data451$locX, y = data451$locY, window=monet_window)
-  L451 <- Linhom(ppp451, correction="border")
+  L451 <- Linhom(ppp451, correction="border", lambda=pooledDens)
   
   
   #data from the last 45 seconds
   data454 <- subset(Monet, id == curr_id & inpic == 1 & dur40 == 1 & timestamp <= 180000 & timestamp >= 135000)
   ppp454 <- ppp(data454$locX, y = data454$locY, window=monet_window)
-  L454 <- Linhom(ppp454, correction="border")
+  L454 <- Linhom(ppp454, correction="border", lambda=pooledDens)
   
   
   #integration for the first 45 and the last 45. här användes abs. consider using the one tailed test.
   
   integral451454 <- integral(abs(L451 - L454))
-  pooled451454 <- subset(Monet, id == curr_id & inpic == 1 & dur40 == 1 & (timestamp <= 45000 | (timestamp >= 135000 & timestamp <= 180000)))
+  pooled451454 <- pooled451454 <- subset(Monet, id == curr_id & inpic == 1 & dur40 == 1 & (timestamp <= 45000 | (timestamp >= 135000 & timestamp <= 180000)))
   
   n451 <- nrow(data451)
   n454 <- nrow(data454)
@@ -109,8 +112,68 @@ for (j in 1:20) {
     g2 <- pooled451454[-random_sample, ]
     ppp1 <- ppp(g1$locX, g1$locY, window=monet_window)
     ppp2 <- ppp(g2$locX, g2$locY, window=monet_window)
-    L1 <- Linhom(ppp1, correction = "border")
-    L2 <- Linhom(ppp2, correction = "border")
+    L1 <- Linhom(ppp1, correction = "border", lambda=pooledDens)
+    L2 <- Linhom(ppp2, correction = "border", lambda=pooledDens)
+    res_array[i] <- integral(abs(L1 - L2))["border"]
+  }
+  
+  #gör histogrammet nu. och sedan skaffa ett test statistika för att jämföra med histogrammet och gör beslut om resultatet.
+  sorted_ra <- sort(res_array)
+  higher <- as.integer(0.95*nrow(res_array))
+  
+  
+  if (integral451454["border"] >= sorted_ra[higher]) {
+    hist(res_array,main=paste("histogram för testperson", curr_id), xlab="resultat från integration", xlim=c(0,integral451454["border"] + 0.2*integral451454["border"]), nclass=15)
+  } else {
+    hist(res_array,main=paste("histogram för testperson", curr_id), xlab="resultat från integration", xlim=c(0,sorted_ra[nrow(sorted_ra)]+100+abs(sorted_ra[nrow(sorted_ra)]*0.1)), nclass=15)
+  }
+  abline(v=integral451454["border"], col="green")
+  abline(v=sorted_ra[higher], col="red")
+}
+dev.off()
+
+pdf("histograms2.pdf", width=8, height=40)
+par(mfrow = c(10, 2))
+for (j in 1:20) {
+  curr_id <- j
+  
+  #data all
+  data451454 <- pooled451454 <- subset(Monet, id == curr_id & inpic == 1 & dur40 == 1 & (timestamp <= 45000 | (timestamp >= 135000 & timestamp <= 180000)))
+  ppp451454 <- ppp(data451454$locX, data451454$locY, window=monet_window)
+  pooledDens <- density(ppp451454, sigma=bw.diggle(ppp451454))
+  
+  #data from first 45 seconds
+  data451 <- subset(Monet, id == curr_id & inpic == 1 & dur40 == 1 & timestamp <= 45000)
+  ppp451 <- ppp(data451$locX, y = data451$locY, window=monet_window)
+  L451 <- Linhom(ppp451, correction="border", lambda=density(ppp451, sigma=bw.diggle(ppp451)))
+  
+  
+  #data from the last 45 seconds
+  data454 <- subset(Monet, id == curr_id & inpic == 1 & dur40 == 1 & timestamp <= 180000 & timestamp >= 135000)
+  ppp454 <- ppp(data454$locX, y = data454$locY, window=monet_window)
+  L454 <- Linhom(ppp454, correction="border", lambda=density(ppp454, sigma=bw.diggle(ppp454)))
+  
+  
+  #integration for the first 45 and the last 45. här användes abs. consider using the one tailed test.
+  
+  integral451454 <- integral(abs(L451 - L454))
+  pooled451454 <- pooled451454 <- subset(Monet, id == curr_id & inpic == 1 & dur40 == 1 & (timestamp <= 45000 | (timestamp >= 135000 & timestamp <= 180000)))
+  
+  n451 <- nrow(data451)
+  n454 <- nrow(data454)
+  n451454 <- nrow(pooled451454)
+  
+  #data splitting
+  simuleringar <- 999
+  res_array <- array(dim = simuleringar)
+  for (i in 1:simuleringar) {
+    random_sample <- sample(n451454, n451)
+    g1 <- pooled451454[random_sample, ]
+    g2 <- pooled451454[-random_sample, ]
+    ppp1 <- ppp(g1$locX, g1$locY, window=monet_window)
+    ppp2 <- ppp(g2$locX, g2$locY, window=monet_window)
+    L1 <- Linhom(ppp1, correction = "border", lambda=density(ppp1, sigma=bw.diggle(ppp1)))
+    L2 <- Linhom(ppp2, correction = "border", lambda=density(ppp2, sigma=bw.diggle(ppp2)))
     res_array[i] <- integral(abs(L1 - L2))["border"]
   }
   
@@ -130,18 +193,6 @@ for (j in 1:20) {
 dev.off()
 
 
-
-
-
-
-
-
-
-
-
-
-
-#hej
 
 
 
@@ -466,7 +517,7 @@ abline(v=sorted_NNNra[higherNNN], col="red")
 
 
 #################################ABS
-#######################checks data for EXPERIENCE
+#######################checks data for EXPERIENCE POOLED LAMBDA
 
 #data from 1 group non-novices
 dataNN <- subset(Monet, class == 2 & inpic == 1 & dur40 == 1)
@@ -476,15 +527,13 @@ dataN <- subset(Monet, class == 1 & inpic == 1 & dur40 == 1)
 dataNNN <- subset(Monet, inpic == 1 & dur40 == 1)
 
 
-
-
-
-
+pppNNN <-  ppp(x=dataNNN$locX, y=dataNNN$locY, window=monet_window)
 pppNN <- ppp(x=dataNN$locX, y=dataNN$locY, window=monet_window)
 pppN <- ppp(x=dataN$locX, y=dataN$locY, window=monet_window)
 
-LNN <- Linhom(pppNN, correction="border")
-LN <- Linhom(pppN, correction="border")
+pooledNNNZ <- density(pppNNN, sigma=bw.diggle(pppNNN))
+LNN <- Linhom(pppNN, correction="border", lambda=pooledNNNZ)
+LN <- Linhom(pppN, correction="border", lambda=pooledNNNZ)
 
 integralNNN <- integral(abs(LNN - LN))["border"]
 
@@ -519,8 +568,8 @@ for(i in 1:simuleringar) {
   gN <- dataNNN[-samplad,]
   pppSNN <- ppp(x=gNN$locX, y=gNN$locY, window=monet_window)
   pppSN <- ppp(x=gN$locX, y=gN$locY, window=monet_window)
-  SLNN <- Linhom(pppSNN, correction="border")
-  SLN <- Linhom(pppSN, correction="border")
+  SLNN <- Linhom(pppSNN, correction="border", lambda=pooledNNNZ)
+  SLN <- Linhom(pppSN, correction="border", lambda=pooledNNNZ)
   integralSNNN <- integral(abs(SLNN - SLN))["border"]
   res[i] = integralSNNN
 }
@@ -529,7 +578,7 @@ sorted_NNNra <- sort(res)
 higherNNN <- as.integer(0.95*nrow(res))
 
 if (integralNNN["border"] >= sorted_NNNra[higherNNN]) {
-  hist(res,main="histogram, där NN är mer klustrad", xlab="resultat från integration", xlim=c(sorted_NNNra[1]+sorted_NNNra[1]*0.2,integralNNN["border"] + 0.2*integralNNN["border"]), nclass=15)
+  hist(res,main="förkastning mellan NN och N", xlab="resultat från integration", xlim=c(0,integralNNN["border"] + 0.2*integralNNN["border"]), nclass=15)
 } else {
   hist(res,main="ingen förkastning mellan NN och N", xlab="resultat från integration", xlim=c(sorted_NNNra[1]-100-abs(sorted_NNNra[1]*0.1),sorted_NNNra[nrow(sorted_NNNra)]+100+abs(sorted_NNNra[nrow(sorted_NNNra)]*0.1)), nclass=15)
 }
@@ -537,6 +586,120 @@ if (integralNNN["border"] >= sorted_NNNra[higherNNN]) {
 
 abline(v=integralNNN["border"], col="green")
 abline(v=sorted_NNNra[higherNNN], col="red")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#################################ABS
+#######################checks data for EXPERIENCE NO POOLED, LAMBDA INDIVIDUALLY
+
+#data from 1 group non-novices
+dataNN <- subset(Monet, class == 2 & inpic == 1 & dur40 == 1)
+#data from 1 group of novices
+dataN <- subset(Monet, class == 1 & inpic == 1 & dur40 == 1)
+#data from 1 group of all peeps
+dataNNN <- subset(Monet, inpic == 1 & dur40 == 1)
+
+
+pppNNN <-  ppp(x=dataNNN$locX, y=dataNNN$locY, window=monet_window)
+
+
+
+pppNN <- ppp(x=dataNN$locX, y=dataNN$locY, window=monet_window)
+pppN <- ppp(x=dataN$locX, y=dataN$locY, window=monet_window)
+pooledNNNZ <- density(pppNNN, sigma=bw.diggle(pppNNN))
+LNN <- Linhom(pppNN, correction="border", lambda=density(pppNN, sigma=bw.diggle(pppNN)))
+LN <- Linhom(pppN, correction="border", lambda=density(pppN, sigma=bw.diggle(pppN)))
+
+
+
+
+
+integralNNN <- integral(abs(LNN - LN))["border"]
+
+
+plot(LNN$border, type="l", col="red", ylab="L(r)", xlab="r")
+lines(LN$border, type="l", col="blue")
+legend("topleft", legend = c("non-novice", "novice"), col=c("red","blue"), lwd=2)
+
+
+ggplot(dataNN, aes(x=locX, y=locY)) +
+  stat_density_2d_filled(h=c(bw.diggle(pppNN), bw.diggle(pppNN))) +
+  scale_fill_viridis(discrete=TRUE, option="magma")
+
+
+
+ggplot(dataN, aes(x=locX, y=locY)) +
+  stat_density_2d_filled(h=c(bw.diggle(pppN), bw.diggle(pppN))) +
+  scale_fill_viridis(discrete=TRUE, option="magma")
+
+
+
+
+
+antalNN <- nrow(dataNN)
+antalN <- nrow(dataN)
+antalNNN <- nrow(dataNNN)
+simuleringar <- 999
+res=array(dim=simuleringar)
+for(i in 1:simuleringar) {
+  samplad <- sample(antalNNN, antalNN)
+  gNN <- dataNNN[samplad, ]
+  gN <- dataNNN[-samplad,]
+  pppSNN <- ppp(x=gNN$locX, y=gNN$locY, window=monet_window)
+  pppSN <- ppp(x=gN$locX, y=gN$locY, window=monet_window)
+  SLNN <- Linhom(pppSNN, correction="border", lambda=density(pppSNN, sigma=bw.diggle(pppSNN)))
+  SLN <- Linhom(pppSN, correction="border", lambda=density(pppSN, sigma=bw.diggle(pppSN)))
+  integralSNNN <- integral(abs(SLNN - SLN))["border"]
+  res[i] = integralSNNN
+}
+
+sorted_NNNra <- sort(res)
+higherNNN <- as.integer(0.95*nrow(res))
+
+if (integralNNN["border"] >= sorted_NNNra[higherNNN]) {
+  hist(res,main="förkastning mellan NN och N", xlab="resultat från integration", xlim=c(0,integralNNN["border"] + 0.2*integralNNN["border"]), nclass=15)
+} else {
+  hist(res,main="ingen förkastning mellan NN och N", xlab="resultat från integration", xlim=c(0 ,sorted_NNNra[nrow(sorted_NNNra)]+100+abs(sorted_NNNra[nrow(sorted_NNNra)]*0.1)), nclass=15)
+}
+
+
+abline(v=integralNNN["border"], col="green")
+abline(v=sorted_NNNra[higherNNN], col="red")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
