@@ -1,4 +1,6 @@
-load("Z:\\Chalmers\\KANDIDAT\\programmering\\Monet.RData") #copy paste your path for data
+#testade mer med intensitet, kollade in på Kfunktioner, och hur man kan plotta flera samtidigt. testade först med cowplot men för komplicerad. kör pdf i stället. började att kolla på hur gruppers erfarenhet och deras Kfuntkion
+
+load("") #copy paste your path for data
 library("spatstat")
 library("ggplot2")
 library("jpeg")
@@ -19,7 +21,7 @@ dataNN <- subset(Monet, class == 2 & inpic == 1) #non-novices
 dataN <- subset(Monet, class == 1 & inpic == 1) #novices
 
 
-image <- readJPEG("Z:\\Chalmers\\KANDIDAT\\programmering\\Monet.JPG") #copy paste your path for image
+image <- readJPEG("") #copy paste your path for image
 
 
 #### ------- list of subjects who are non-novices and novices respectively -------- ####
@@ -37,11 +39,10 @@ monet_pppA <-  ppp(x = dataA$locX, y = dataA$locY, window = monet_window)
 #### ------- ppp plots -------- ####
 
 plot.ppp(monet_pppNN, ann=TRUE, border ="white", cols="white", xlab ="plot för non-novices", col.lab="white",pch=3)
-
 plot.ppp(monet_pppN, ann=TRUE, border ="white", cols="white", xlab ="plot för novices", col.lab="white",pch=3)
 
 
-#### ------- density (converted to data frames, idk why) and their plots -------- ####
+#### ------- density and their plots -------- ####
 
 bNN <- bw.diggle(monet_pppNN)
 bN <- bw.diggle(monet_pppN)
@@ -51,31 +52,9 @@ densNN <- density(monet_pppNN, sigma = bNN, positive = TRUE, edge = TRUE, diggle
 densN <- density(monet_pppN, sigma = bN, positive = TRUE, edge = TRUE, diggle = TRUE, dimyx = c(768, 1024))
 densA <- density(monet_pppA, sigma = bA, positive = TRUE, edge = TRUE, diggle = TRUE)
 
-densA_df <- as.data.frame(densA)
-densNN_df <- as.data.frame(densNN)
-densN_df <- as.data.frame(densN)
-
 plot(densNN, main="density plot of non-novices")
 plot(densN, main="density plot of novices")
 plot(densA, main="density plot of all")
-
-
-#### ------- density with image as background -------- ####
-
-ggplot(dataNN, mapping=aes(x=locX, y=locY)) +
-  annotation_raster(image,xmin=5,xmax=1017,ymin=0,ymax=767)+
-  stat_density_2d(aes(fill = after_stat(level)), geom="polygon", h=c(bNN,bNN), alpha=0.3)+
-  coord_fixed(xlim = c(5, 1017), ylim = c(0, 767))+
-  scale_fill_gradient(name="venne alltså", low="darkblue", high="lightpink")
-
-
-
-ggplot(dataN, mapping=aes(x=locX, y=locY)) +
-  annotation_raster(image,xmin=5,xmax=1017,ymin=0,ymax=767)+
-  stat_density_2d(aes(fill = after_stat(level)), geom="polygon", h=c(bN,bN), alpha=0.3)+
-  coord_fixed(xlim = c(5, 1017), ylim = c(0, 767))+
-  scale_fill_gradient(name="venne alltså", low="turquoise", high="#360f5a")
-
 
 #### ------- everyone at once -------- ####
 
@@ -111,17 +90,6 @@ for (i in losNN) {
   plot(KiNN_NN, main=paste("testsubjekt", i, "är klassen non-novice men mot grupp av non-novices"), lwd=3) 
 }
 dev.off()
-# shows the image
-for (i in losNN) {
-  data_i <- subset(Monet, id == i & inpic == 1)
-  print(ggplot() +
-    annotation_raster(image,xmin=5,xmax=1017,ymin=0,ymax=767)+
-    geom_raster(data = densNN_df, aes(x=x, y=y, fill=value), alpha=0.7) +
-    geom_point(mapping=aes(x=locX, y=locY), data=data_i, color="white")+
-    coord_fixed(xlim = c(5, 1017), ylim = c(0, 767))+
-    scale_fill_gradient(name="venne alltså", low="darkblue", high="darkorange") +
-    annotate(geom="text", label = paste("subjekt", i), x= 506, y = -15))
-}
 
 # trying out monte carlo test for non-novices . ska man ha intensitet här eller?
 

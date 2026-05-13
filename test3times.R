@@ -1,4 +1,6 @@
-load("Z:\\Chalmers\\KANDIDAT\\programmering\\Monet.RData") #copy paste your path for data
+#testar med tidsintervaller. kör mer restrictions på datan. 
+
+load("") #copy paste your path for data
 library("spatstat")
 library("ggplot2")
 library("jpeg")
@@ -17,7 +19,7 @@ dataA <- subset(Monet, inpic == 1 & duration >= 100) #everyone
 dataNN <- subset(Monet, class == 2 & inpic == 1 & duration >= 100) #non-novices
 dataN <- subset(Monet, class == 1 & inpic == 1 & duration >= 100) #novices
 
-image <- readJPEG("Z:\\Chalmers\\KANDIDAT\\programmering\\Monet.JPG")
+image <- readJPEG("")
 
 
 #### ------- list of subjects who are non-novices and novices respectively -------- ####

@@ -1,4 +1,6 @@
-load("Z:\\Chalmers\\KANDIDAT\\programmering\\Monet.RData")
+#i denna fil testade vi runt med intensitet och ggplot. mest för att känna igen oss med R
+
+load("")
 library("spatstat")
 library("ggplot2")
 library("jpeg")
@@ -14,17 +16,9 @@ par(bg = "#212120", col.axis ="white", col.lab="white", col.main="white") #fixar
 monet_window <- owin(c(5, 1017), c(0, 767))
 curr_id <- 5
 subject_data <- subset(Monet, id == curr_id & inpic == 1)
-image <- readJPEG("Z:\\Chalmers\\KANDIDAT\\programmering\\Monet.JPG")
+image <- readJPEG("")
 
-monet_ppp <- ppp(x = subject_data$locX, 
-                 y = subject_data$locY, 
-                 window = monet_window)
-
-profile <- Monet[Monet$id == curr_id, ][1, ]
-gender <- ifelse(profile$sex == 1, "Female", "Male")
-experience <- ifelse(profile$class == 1, "Novice", "Non-Novice")
-print(paste("Subject", curr_id, "is a", gender, "and is a", experience))
-
+monet_ppp <- ppp(x=subject_data$locX, y=subject_data$locY, window=monet_window)
 
 for (i in 1:20) {
   subject_data_i <- subset(Monet, id == i & inpic == 1)
@@ -96,22 +90,3 @@ ggplot(subject_data, aes(x = locX, y = locY)) +
 b <- bw.diggle(monet_ppp)
 print(b)
 plot(density(monet_ppp, bw.diggle))
-
-
-#empirisk plot?
-#Ki <- Kinhom(monet_ppp,correction=c("border", "bord.modif"), sigma =100)
-#plot(Ki, main = paste("varianter av den inhomogena kfunktionen för test", curr_id), lwd = 3)
-
-#Li <- Linhom(monet_ppp, correction=c("border", "bord.modif"), sigma=100)
-#plot(Li, main=paste("varianter av L inhomogen funktionen för test ", curr_id), lwd=3)
-
-#Gi <- Ginhom(monet_ppp, correction=c("border", "bord.modif"), sigma=100)
-#plot(Gi, main=paste("varianter av G inhomogen funktionen för test ", curr_id), lwd=3)
-
-#quadC <- quadratcount(monet_ppp, 20, 20)
-#qtest <- quadrat.test(quadC)
-#print(qtest)
-#plot(qtest)
-#quadI <- intensity(quadC, image=TRUE)
-#colors = viridis(n = 256, option = "D")
-#plot(quadI, col=colors)

@@ -1,4 +1,6 @@
-load("Z:\\Chalmers\\KANDIDAT\\programmering\\Monet.RData") #copy paste your path for data
+#viktig till rapporten. många olika tester som gjordes
+
+load("") #copy paste your path for data
 library("spatstat")
 library("ggplot2")
 library("jpeg")
@@ -8,7 +10,7 @@ library("sets")
 rm(list = ls()) #removes stuff from global environment if you want to clear shit
 dev.off(dev.list()["RStudioGD"]) #removes all existing plots 
 monet_window <- owin(c(5, 1017), c(0, 767))
-image <- readJPEG("Z:\\Chalmers\\KANDIDAT\\programmering\\Monet.JPG") #copy paste your path for image
+image <- readJPEG("") #copy paste your path for image
 
 
 curr_id <- 3

@@ -1,4 +1,6 @@
-load("Z:\\Chalmers\\KANDIDAT\\programmering\\Monet.RData") #copy paste your path for data
+#inte relevant till rapporten på något sätt men en extra fil för att jämföra tiden som grupperna tittar på tavlan, tiden på saccades osv.
+
+load("") #copy paste your path for data
 library("spatstat")
 library("ggplot2")
 library("jpeg")
