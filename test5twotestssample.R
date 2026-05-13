@@ -11,10 +11,19 @@ monet_window <- owin(c(5, 1017), c(0, 767))
 image <- readJPEG("Z:\\Chalmers\\KANDIDAT\\programmering\\Monet.JPG") #copy paste your path for image
 
 
+curr_id <- 3
 
 
+#data from first 45 seconds
+data451 <- subset(Monet, id == curr_id & inpic == 1 & dur40 == 1 & timestamp <= 45000)
+ppp451 <- ppp(data451$locX, y = data451$locY, window=monet_window)
+L451 <- Linhom(ppp451, correction="border", lambda=density(ppp451, sigma=bw.diggle(ppp451), diggle=TRUE))
 
-curr_id <- 2
+#data from the last 45 seconds
+data454 <- subset(Monet, id == curr_id & inpic == 1 & dur40 == 1 & timestamp <= 180000 & timestamp >= 135000)
+ppp454 <- ppp(data454$locX, y = data454$locY, window=monet_window)
+L454 <- Linhom(ppp454, correction="border", lambda=density(ppp454, sigma=bw.diggle(ppp454), diggle=TRUE))
+
 
 #data from first 45 seconds
 data451 <- subset(Monet, id == curr_id & inpic == 1 & dur40 == 1 & timestamp <= 45000)
@@ -25,7 +34,6 @@ L451 <- Linhom(ppp451, correction="border", lambda=density(ppp451, sigma=bw.digg
 data454 <- subset(Monet, id == curr_id & inpic == 1 & dur40 == 1 & timestamp <= 180000 & timestamp >= 135000)
 ppp454 <- ppp(data454$locX, y = data454$locY, window=monet_window)
 L454 <- Linhom(ppp454, correction="border", lambda=density(ppp454, sigma=bw.diggle(ppp454)))
-
 
 plot(L451$border, type="l", col="red", xlab="r", ylab="L(r)", ylim=c(0, 250))
 lines(L454$border, type="l", col="blue")
@@ -49,8 +57,8 @@ for (i in 1:simuleringar) {
   g2 <- pooled451454[-random_sample, ]
   ppp1 <- ppp(g1$locX, g1$locY, window=monet_window)
   ppp2 <- ppp(g2$locX, g2$locY, window=monet_window)
-  L1 <- Linhom(ppp1, correction = "border", lambda=density(ppp1, sigma=bw.diggle(ppp1)))
-  L2 <- Linhom(ppp2, correction = "border", lambda=density(ppp2, sigma=bw.diggle(ppp2)))
+  L1 <- Linhom(ppp1, correction = "border", lambda=density(ppp1, sigma=bw.diggle(ppp1), diggle=TRUE))
+  L2 <- Linhom(ppp2, correction = "border", lambda=density(ppp2, sigma=bw.diggle(ppp2), diggle=TRUE))
   res_array[i] <- integral(abs(L1 - L2))["border"]
 }
 
@@ -682,46 +690,9 @@ abline(v=sorted_NNNra[higherNNN], col="red")
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #data from males
 dataM <- subset(Monet, sex == 2 & inpic == 1 & dur40 == 1)
 
 
 #data from females
 dataF <- subset(Monet, sex == 1 & inpic == 1 & dur40 == 1)
-
-
-
-
-
-
