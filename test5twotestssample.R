@@ -686,13 +686,3 @@ if (integralNNN["border"] >= sorted_NNNra[higherNNN]) {
 
 abline(v=integralNNN["border"], col="green")
 abline(v=sorted_NNNra[higherNNN], col="red")
-
-
-
-
-#data from males
-dataM <- subset(Monet, sex == 2 & inpic == 1 & dur40 == 1)
-
-
-#data from females
-dataF <- subset(Monet, sex == 1 & inpic == 1 & dur40 == 1)
